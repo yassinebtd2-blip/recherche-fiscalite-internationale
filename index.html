@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recherche fiscalité internationale du Canada</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet">
+<style>
+
+
+:root {
+  /* Outil de travail : barre d'onglets, colonne de recherche, fiches à déplier. Violet = accent, bleu = particuliers, ambre = sociétés. */
+  --bg: #f4f5f7;
+  --surface: #ffffff;
+  --ink: #1b2330;
+  --muted: #5b6575;
+  --line: #dde1e7;
+  --accent: #5a3d7a;
+  --accent-soft: #efe8f5;
+  --qc: #8a2d3b;
+  --qc-soft: #f6e8ea;
+  --warn: #8a5a00;
+  --warn-soft: #fbf1dc;
+  --ok: #1f6b45;
+  --font-display: "IBM Plex Serif", Georgia, serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12161d; --surface: #1a2029; --ink: #e5e9ef; --muted: #9aa4b3; --line: #2c3440;
+    --accent: #c3a6e6; --accent-soft: #2a2236; --qc: #e39aa6; --qc-soft: #3a2228;
+    --warn: #e6b65c; --warn-soft: #3a2f18; --ok: #6fcf9b; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12161d; --surface: #1a2029; --ink: #e5e9ef; --muted: #9aa4b3; --line: #2c3440;
+  --accent: #c3a6e6; --accent-soft: #2a2236; --qc: #e39aa6; --qc-soft: #3a2228;
+  --warn: #e6b65c; --warn-soft: #3a2f18; --ok: #6fcf9b; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.55 var(--font-body); }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
+header { background: var(--surface); border-bottom: 1px solid var(--line); }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+.top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 20px; padding: 18px 0 10px; }
+h1 { font: 600 1.45rem/1.2 var(--font-display); margin: 0; text-wrap: balance; }
+.stamp { color: var(--muted); font-size: .82rem; }
+nav { display: flex; gap: 4px; overflow-x: auto; }
+nav a { padding: 10px 14px; text-decoration: none; color: var(--muted); border-bottom: 2px solid transparent; white-space: nowrap; font-weight: 500; }
+nav a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--accent); }
+main { padding: 24px 0 60px; }
+section[hidden] { display: none; }
+h2 { font: 600 1.2rem/1.3 var(--font-display); margin: 0 0 6px; text-wrap: balance; }
+.lede { color: var(--muted); margin: 0 0 18px; max-width: 70ch; }
+.searchbar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+input[type="search"], input[type="text"], input[type="number"], select, textarea {
+  font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px;
+}
+#q { flex: 1 1 320px; font-size: 1rem; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
+.chip { font: inherit; font-size: .85rem; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 4px 12px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+.count { color: var(--muted); font-size: .85rem; margin-bottom: 10px; }
+.cards { display: grid; gap: 10px; }
+details.card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+details.card > summary { list-style: none; cursor: pointer; padding: 14px 16px; display: grid; gap: 4px; }
+details.card > summary::-webkit-details-marker { display: none; }
+.card-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.card-title { font-weight: 600; font-size: 1.02rem; }
+.card-sum { color: var(--muted); font-size: .9rem; max-width: 80ch; }
+.tag { font-size: .72rem; font-weight: 600; letter-spacing: .03em; padding: 2px 8px; border-radius: 4px; }
+.tag.tps { background: var(--accent-soft); color: var(--accent); }
+.tag.tvq { background: var(--qc-soft); color: var(--qc); }
+.tag.new { background: var(--warn-soft); color: var(--warn); }
+.tag.cat { background: transparent; color: var(--muted); border: 1px solid var(--line); font-weight: 500; }
+.card-body { padding: 0 16px 16px; border-top: 1px solid var(--line); }
+.card-body ul { margin: 12px 0; padding-left: 20px; max-width: 80ch; }
+.card-body li { margin: 4px 0; }
+.refs { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+.ref { font: .8rem var(--font-mono); background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 2px 8px; }
+.links { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .88rem; }
+.card-actions { margin-top: 12px; }
+button.btn { font: inherit; font-weight: 500; border: 1px solid var(--accent); background: var(--accent); color: var(--surface); border-radius: 6px; padding: 9px 16px; cursor: pointer; }
+button.btn.ghost { background: transparent; color: var(--accent); }
+button.btn:disabled { opacity: .55; cursor: default; }
+mark { background: var(--warn-soft); color: inherit; padding: 0 1px; }
+.empty { padding: 24px; text-align: center; color: var(--muted); background: var(--surface); border: 1px dashed var(--line); border-radius: 8px; }
+/* Assistant */
+.ask { display: grid; gap: 10px; }
+textarea { width: 100%; min-height: 110px; resize: vertical; }
+.ask-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.examples { display: flex; flex-wrap: wrap; gap: 6px; }
+.notice { border-left: 3px solid var(--warn); background: var(--warn-soft); padding: 10px 14px; border-radius: 0 6px 6px 0; font-size: .9rem; max-width: 80ch; }
+.answer { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 6px 20px 14px; margin-top: 16px; max-width: 860px; }
+.answer h3 { font: 600 1rem var(--font-display); margin: 16px 0 4px; }
+.answer p, .answer li { max-width: 78ch; }
+.answer code { font: .85em var(--font-mono); background: var(--bg); padding: 1px 5px; border-radius: 3px; }
+.ctx { font-size: .82rem; color: var(--muted); margin-top: 10px; }
+.history { margin-top: 24px; }
+.history h3 { font-size: .9rem; color: var(--muted); font-weight: 600; margin: 0 0 6px; }
+.history button { font: inherit; font-size: .88rem; background: none; border: none; color: var(--accent); cursor: pointer; padding: 3px 0; text-align: left; display: block; }
+/* Calculateur */
+.calc { display: grid; grid-template-columns: minmax(260px, 340px) 1fr; gap: 20px; align-items: start; }
+@media (max-width: 720px) { .calc { grid-template-columns: 1fr; } }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px; display: grid; gap: 12px; }
+label { font-size: .85rem; font-weight: 600; display: grid; gap: 4px; }
+.seg { display: flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button { flex: 1; font: inherit; font-size: .88rem; padding: 8px; background: var(--surface); color: var(--ink); border: 0; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+th { font-size: .8rem; color: var(--muted); font-weight: 600; }
+td.num, th.num { text-align: right; }
+tr.total td { font-weight: 600; border-bottom: 0; border-top: 2px solid var(--ink); }
+.tablebox { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow-x: auto; }
+.note { color: var(--muted); font-size: .85rem; max-width: 80ch; }
+/* Nouveautés */
+.timeline { display: grid; gap: 10px; }
+.tl { display: grid; grid-template-columns: 130px 1fr; gap: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; }
+@media (max-width: 560px) { .tl { grid-template-columns: 1fr; gap: 4px; } }
+.tl time { font: 500 .88rem var(--font-mono); color: var(--muted); }
+.tl p { margin: 4px 0 0; max-width: 78ch; }
+.srcgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+.src { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; display: grid; gap: 4px; }
+.src a { font-weight: 600; }
+.src span { color: var(--muted); font-size: .88rem; }
+footer { color: var(--muted); font-size: .8rem; border-top: 1px solid var(--line); padding: 16px 0 30px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+.tag.soc { background: var(--warn-soft); color: var(--warn); }
+.tag.part { background: var(--accent-soft); color: var(--accent); }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 12px; }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; }
+.kpi span { display: block; font-size: .78rem; color: var(--muted); }
+.kpi strong { font: 600 1.15rem var(--font-body); font-variant-numeric: tabular-nums; }
+.check { display: flex; align-items: center; gap: 8px; font-weight: 500; }
+.check input { width: 16px; height: 16px; }
+h3.sub { font: 600 1rem var(--font-display); margin: 18px 0 8px; }
+.calc[hidden] { display: none; }
+.calc > * { min-width: 0; }
+.panel input, .panel select { width: 100%; min-width: 0; }
+.panel .check input { width: 16px; }
+
+[hidden] { display: none !important; }
+.panel .check input { width: 16px; height: 16px; flex: 0 0 16px; padding: 0; }
+
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="top">
+      <h1>Recherche fiscalité internationale du Canada</h1>
+      <span class="stamp" id="stamp">Contenu à jour au 20 novembre 2026</span>
+    </div>
+    <nav aria-label="Sections">
+      <a href="#recherche" data-view="recherche">Recherche</a>
+      <a href="#assistant" data-view="assistant">Assistant</a>
+      <a href="#calculateur" data-view="calculateur">Retenue non-résidents</a>
+      <a href="#taux" data-view="taux">Taux des conventions</a>
+      <a href="#nouveautes" data-view="nouveautes">Nouveautés</a>
+      <a href="#sources" data-view="sources">Sources officielles</a>
+    </nav>
+  </div>
+</header>
+<div id="redirect-banner" class="wrap" hidden>
+  <div class="notice" style="margin-top:14px">Ouverture de la version en ligne à jour… <a href="#local" id="stay-local">Rester sur cette copie locale</a></div>
+</div>
+<main class="wrap">
+  <section id="v-recherche">
+    <h2>Fiches de recherche</h2>
+    <p class="lede">Tapez un mot-clé (ex. « 183 jours », « article 116 », « T1135 », « surplus exonéré ») ou filtrez par thème. Chaque fiche renvoie à la Loi de l'impôt sur le revenu (LIR), à la Loi sur les impôts du Québec (LI), aux conventions et aux pages officielles.</p>
+    <div class="searchbar">
+      <input type="search" id="q" placeholder="Rechercher un sujet, un article, un formulaire…" aria-label="Rechercher dans les fiches">
+      <select id="regime" aria-label="Contribuable">
+        <option value="">Particuliers et sociétés</option>
+        <option value="part">Particuliers</option>
+        <option value="soc">Sociétés</option>
+      </select>
+    </div>
+    <div class="chips" id="chips"></div>
+    <div class="count" id="count"></div>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section id="v-assistant" hidden>
+    <h2>Assistant de recherche</h2>
+    <p class="lede">Posez une question précise. L'assistant s'appuie sur les fiches pertinentes, distingue la loi canadienne de la convention applicable et le fédéral du Québec, et cite les articles à consulter.</p>
+    <div class="notice" id="ai-notice">Les réponses sont un point de départ de recherche, pas un avis professionnel. Vérifiez toujours le texte de la convention et les articles cités.</div>
+    <div class="ask" style="margin-top:14px">
+      <label for="ask-q">Votre question</label>
+      <textarea id="ask-q" placeholder="Ex. : Une SPCC du Québec verse un dividende à sa société mère française qui détient 30 % des actions. Quel taux de retenue appliquer ?"></textarea>
+      <div class="examples" id="examples"></div>
+      <div class="ask-row">
+        <button class="btn" id="ask-btn" type="button">Rechercher la réponse</button>
+        <button class="btn ghost" id="ask-stop" type="button" hidden>Arrêter</button>
+        <span class="note" id="ask-status"></span>
+      </div>
+    </div>
+    <div id="answer"></div>
+    <div class="history" id="history"></div>
+  </section>
+
+  <section id="v-calculateur" hidden>
+    <h2>Retenue d'impôt des non-résidents (partie XIII)</h2>
+    <p class="lede">Taux de la loi (25 %) ou taux maximal de la convention, selon le pays du bénéficiaire et le type de revenu. La retenue de la partie XIII est fédérale : le Québec n'impose pas de retenue sur ces revenus passifs.</p>
+    <div class="calc">
+      <div class="panel">
+        <label for="c-montant">Montant brut payé ($)
+          <input type="number" id="c-montant" min="0" step="100" value="10000">
+        </label>
+        <label for="c-pays">Pays de résidence du bénéficiaire
+          <select id="c-pays"></select>
+        </label>
+        <label for="c-type">Type de revenu
+          <select id="c-type">
+            <option value="div">Dividendes</option>
+            <option value="int_nad">Intérêts : avec lien de dépendance</option>
+            <option value="int_ad">Intérêts : sans lien de dépendance (non participatifs)</option>
+            <option value="roy">Redevances</option>
+            <option value="loyer">Loyers d'un immeuble situé au Canada</option>
+            <option value="pens">Pension périodique (régime privé)</option>
+          </select>
+        </label>
+        <label class="check" id="w-subst"><input type="checkbox" id="c-subst"> Le bénéficiaire est une société qui détient une participation importante dans le payeur</label>
+        <label for="c-roy" id="w-roy">Nature des redevances
+          <select id="c-roy">
+            <option value="cult">Droits d'auteur culturels, logiciels, brevets et savoir-faire</option>
+            <option value="autre">Autres (franchises, location de biens meubles, etc.)</option>
+          </select>
+        </label>
+      </div>
+      <div>
+        <div class="kpis" id="c-kpis"></div>
+        <div class="tablebox"><table id="c-out"></table></div>
+        <div class="notice" style="margin-top:12px" id="c-note"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="v-taux" hidden>
+    <h2>Taux de retenue selon les conventions</h2>
+    <p class="lede">Taux maximaux appliqués par le Canada aux paiements à des résidents de ces pays. Quand deux taux figurent (ex. 5/15), le plus bas exige des conditions précises de la convention.</p>
+    <div class="tablebox"><table id="t-conv"></table></div>
+    <p class="note" style="margin-top:10px">Sources : tableau des retenues de PwC (révisé le 12 juin 2026) pour les dividendes, les intérêts et les redevances ; tableau de Deloitte (2020) pour les pensions. Les conventions avec la Chine et l'Allemagne sont en renégociation. Les avantages de la convention avec les États-Unis sont soumis à l'article sur la limitation des avantages. La convention avec la Chine ne s'applique pas à Hong Kong. Vérifiez toujours le texte de la convention, les protocoles et l'effet de l'instrument multilatéral (IM).</p>
+  </section>
+
+  <section id="v-nouveautes" hidden>
+    <h2>Nouveautés 2025-2026</h2>
+    <p class="lede">Changements adoptés, en vigueur ou proposés. Une mesure « proposée » n'est pas encore loi.</p>
+    <div class="timeline" id="timeline"></div>
+  </section>
+
+  <section id="v-sources" hidden>
+    <h2>Sources officielles</h2>
+    <p class="lede">Lois, conventions, publications administratives et jurisprudence. Les liens s'ouvrent dans un nouvel onglet.</p>
+    <div class="srcgrid" id="srcgrid"></div>
+  </section>
+</main>
+<footer>
+  <div class="wrap">Outil de recherche personnel. Le contenu résume la législation, les conventions et les positions administratives et peut contenir des simplifications ; il ne constitue pas un avis professionnel. Consultez toujours le texte officiel des lois et des conventions.</div>
+</footer>
+<script>
+/* ================= VERSION ================= */
+// Date de la dernière modification du contenu (mise à jour par la tâche hebdomadaire, seulement s'il y a un vrai changement).
+const DERNIERE_MISE_A_JOUR = "20 novembre 2026";
+const URL_EN_LIGNE = "https://yassinebtd2-blip.github.io/recherche-fiscalite-internationale/";
+const URL_CLAUDE = "https://claude.ai/artifact/YGnVxCKSPujC56gvRU35yK";
+
+/* ================= DONNÉES ================= */
+const L = {
+  lir: "https://laws-lois.justice.gc.ca/fra/lois/i-3.3/",
+  li: "https://www.legisquebec.gouv.qc.ca/fr/document/lc/I-3",
+  ic7612: "https://www.canada.ca/fr/agence-revenu/services/formulaires-publications/publications/ic76-12/taux-applicable-impot-partie-xiii-sommes-payees-creditees-personnes-residant-pays-ayant-conclu-convention-fiscale-canada.html",
+  t4061: "https://www.canada.ca/fr/agence-revenu/services/formulaires-publications/publications/t4061/nr4-retenue-impot-non-residents-versements-declaration.html",
+  convMaroc: "https://www.canada.ca/fr/ministere-finances/programmes/politique-impot/conventions-fiscales/pays/maroc-convention-1975.html",
+  pwcWht: "https://taxsummaries.pwc.com/canada/corporate/withholding-taxes",
+  tsn: "https://www.canada.ca/en/department-finance/news/2025/06/canada-rescinds-digital-services-tax-to-advance-broader-trade-negotiations-with-the-united-states.html",
+  tsnLettre: "https://www.canada.ca/fr/ministere-finances/programmes/politique-impot/lettre-du-ministre-des-finances-et-du-revenun-national-francois-philippe-champagne-aux-contribuables-vises-par-la-taxe-sur-les-services-numeriques.html",
+  eyPilier2: "https://www.ey.com/fr_ca/technical/tax/tax-alerts/2025/tax-alert-2025-no-44",
+  eyPrix: "https://www.ey.com/fr_ca/technical/tax/tax-alerts/2025/tax-alert-2025-no-53",
+  bncBudget2026: "https://www.bnc.ca/particuliers/conseils/vision-leaders/budget-federal-2026.html",
+  finQcBul20263: "https://cdn-contenu.quebec.ca/cdn-contenu/adm/min/finances/publications-adm/Bulletins/FR/BULFR_2026-3.pdf",
+  rqNouvelles: "https://www.revenuquebec.ca/fr/salle-de-presse/nouvelles-fiscales/",
+  canlii: "https://www.canlii.org/fr/",
+  cci: "https://www.tcc-cci.gc.ca/fr"
+};
+
+const FICHES = [
+ { id:"res-part", titre:"Résidence fiscale d'un particulier", regimes:["part"], cat:"Résidence",
+   mots:"résidence de fait liens résidentiels habitation conjoint personnes à charge résident réputé 183 jours séjour départage convention double résidence québec 31 décembre",
+   resume:"Un particulier est imposé sur son revenu mondial s'il réside au Canada. La résidence se détermine selon les faits, la règle des 183 jours et, en cas de double résidence, la convention.",
+   points:[
+     "Résident de fait : selon les liens résidentiels, surtout l'habitation, le conjoint et les personnes à charge ; les liens secondaires (biens, liens sociaux et économiques, assurance maladie) complètent l'analyse.",
+     "Résident réputé : séjour au Canada de 183 jours ou plus dans l'année, sans être résident de fait (al. 250(1)a)).",
+     "Double résidence : la règle de départage de la convention (foyer d'habitation permanent, centre des intérêts vitaux, séjour habituel, nationalité) s'applique ; un particulier non résident aux termes d'une convention est réputé non-résident pour la LIR (par. 250(5)).",
+     "Année partielle : la personne qui arrive ou quitte est résidente pour une partie de l'année seulement (art. 114).",
+     "Québec : l'impôt québécois vise le particulier qui réside au Québec le 31 décembre ; des règles particulières s'appliquent à celui qui cesse de résider au Canada."
+   ],
+   refs:["LIR art. 2(1)","LIR art. 114","LIR art. 250(1)a)","LIR art. 250(5)","Convention : article Résident"],
+   liens:[["Loi de l'impôt sur le revenu",L.lir],["Loi sur les impôts (LégisQuébec)",L.li]] },
+
+ { id:"res-soc", titre:"Résidence fiscale d'une société", regimes:["soc"], cat:"Résidence",
+   mots:"résidence société constituée au canada centre de gestion et de contrôle esprit dirigeant prorogation départage convention instrument multilatéral",
+   resume:"Une société constituée au Canada est réputée y résider ; une société étrangère y réside si son centre de gestion et de contrôle s'y trouve.",
+   points:[
+     "Société constituée au Canada après le 26 avril 1965 : réputée résidente (al. 250(4)a)).",
+     "Société constituée à l'étranger : résidente si sa gestion et son contrôle centraux sont exercés au Canada (jurisprudence).",
+     "Double résidence : selon la convention, siège de direction effective ou procédure amiable (plusieurs conventions modifiées par l'instrument multilatéral depuis 2020).",
+     "Changement de résidence : disposition réputée des biens et impôt de départ des sociétés (art. 219.1)."
+   ],
+   refs:["LIR art. 250(4)","LIR art. 250(5)","LIR art. 128.1","LIR art. 219.1"],
+   liens:[["Loi de l'impôt sur le revenu",L.lir]] },
+
+ { id:"p13", titre:"Retenue de la partie XIII : règles générales", regimes:["part","soc"], cat:"Non-résidents",
+   mots:"partie xiii retenue 25 % non-résident dividendes intérêts loyers redevances pensions frais de gestion nr4 nr301 nr302 nr303 payeur responsable pénalité 10 % propriétaire réel",
+   resume:"Le payeur canadien retient 25 % (ou le taux réduit de la convention) sur les revenus passifs versés à un non-résident et le verse à l'ARC.",
+   points:[
+     "Revenus visés : dividendes, intérêts participatifs ou avec lien de dépendance, loyers, redevances, pensions, frais de gestion, etc. (par. 212(1)).",
+     "Intérêts sans lien de dépendance et non participatifs : aucune retenue (al. 212(1)b)).",
+     "Taux réduit de convention : le payeur doit obtenir les renseignements sur le propriétaire réel (NR301 pour un particulier ou une société, NR302 pour une société de personnes, NR303 pour une entité hybride).",
+     "Le payeur est responsable de la retenue : à défaut, il paie l'impôt et une pénalité de 10 % (20 % en cas de récidive) (par. 215(6) et 227(8)).",
+     "Versement à l'ARC au plus tard le 15 du mois suivant ; feuillets et sommaire NR4 au plus tard le 31 mars.",
+     "La partie XIII est un impôt fédéral : le Québec n'a pas de retenue équivalente sur ces revenus passifs."
+   ],
+   refs:["LIR art. 212(1)","LIR art. 212(2)","LIR art. 215","LIR art. 227(8)","LIR art. 227(10)"],
+   liens:[["Circulaire IC76-12 (ARC)",L.ic7612],["Guide T4061 – NR4 (ARC)",L.t4061]] },
+
+ { id:"conv", titre:"Conventions fiscales : taux réduits et conditions", regimes:["part","soc"], cat:"Non-résidents",
+   mots:"convention fiscale traité taux réduit 5 % 15 % 10 % participation importante limitation des avantages instrument multilatéral im critère des objets principaux propriétaire réel",
+   resume:"Les conventions réduisent la retenue, souvent à 5 % ou 15 % sur les dividendes et à 10 % sur les intérêts et redevances, sous conditions.",
+   points:[
+     "Dividendes : taux le plus bas (souvent 5 %) si le bénéficiaire est une société qui détient une participation importante ; le seuil et le type de participation varient selon la convention (10 %, 20 %, 25 % ; droits de vote ou capital).",
+     "Royaume-Uni : 5 % si la société bénéficiaire contrôle au moins 10 % des droits de vote ; États-Unis : 5 % pour une société détenant au moins 10 % des droits de vote.",
+     "Redevances : plusieurs conventions prévoient 0 % pour les droits d'auteur culturels, les logiciels, les brevets et le savoir-faire.",
+     "États-Unis : les avantages sont soumis à l'article sur la limitation des avantages (LOB).",
+     "Instrument multilatéral (IM) : en vigueur pour plusieurs conventions depuis 2020 ; il ajoute notamment un critère des objets principaux (PPT) qui peut refuser les avantages.",
+     "Les taux de la convention sont des plafonds : la loi canadienne s'applique si elle est plus favorable (ex. intérêts sans lien de dépendance)."
+   ],
+   refs:["LIR art. 212","Loi sur l'interprétation des conventions en matière d'impôts sur le revenu","Convention : articles Dividendes, Intérêts, Redevances"],
+   liens:[["Tableau des retenues (PwC)",L.pwcWht],["Circulaire IC76-12 (ARC)",L.ic7612]] },
+
+ { id:"loyers", titre:"Loyers d'un immeuble au Canada versés à un non-résident", regimes:["part","soc"], cat:"Non-résidents",
+   mots:"loyer immeuble location non-résident 25 % brut choix 216 nr6 revenu net déclaration distincte mandataire",
+   resume:"25 % du loyer brut, sauf si le non-résident choisit d'être imposé sur son revenu net (art. 216).",
+   points:[
+     "Retenue de 25 % sur le loyer brut ; les conventions ne la réduisent généralement pas.",
+     "Choix de l'article 216 : imposition sur le revenu net de location, au taux régulier, avec déclaration distincte.",
+     "Formulaire NR6 : permet au mandataire de retenir 25 % du revenu net estimé plutôt que du brut ; la déclaration de l'article 216 doit alors être produite au plus tard le 30 juin de l'année suivante.",
+     "Le mandataire ou locataire canadien est responsable de la retenue.",
+     "Au Québec, le non-résident qui tire un revenu d'un immeuble situé au Québec peut aussi devoir produire une déclaration québécoise."
+   ],
+   refs:["LIR art. 212(1)d)","LIR art. 216","LIR art. 216(4)"],
+   liens:[["Guide T4061 – NR4 (ARC)",L.t4061]] },
+
+ { id:"services", titre:"Services rendus au Canada par un non-résident", regimes:["part","soc"], cat:"Non-résidents",
+   mots:"services rendus au canada non-résident règlement 105 retenue 15 % renonciation r105 québec 9 % établissement stable consultant",
+   resume:"Le payeur retient 15 % sur les honoraires pour services rendus au Canada par un non-résident (Règlement 105), en plus de la retenue québécoise pour les services rendus au Québec.",
+   points:[
+     "Fédéral : retenue de 15 % sur les honoraires, commissions et autres paiements pour des services rendus au Canada (Règlement 105) ; ce n'est pas un impôt définitif, mais un acompte.",
+     "Le non-résident peut demander une renonciation (formulaire R105) s'il est exonéré par une convention, faute d'établissement stable.",
+     "Québec : retenue additionnelle de 9 % sur les paiements pour des services rendus au Québec par un non-résident.",
+     "Le non-résident produit ensuite une déclaration pour établir l'impôt réel ou obtenir le remboursement.",
+     "Employés non résidents travaillant au Canada : retenues sur la paie (Règlement 102), avec dispenses possibles."
+   ],
+   refs:["Règlement de l'impôt sur le revenu, art. 105","Règlement de l'impôt sur le revenu, art. 102","LIR art. 153(1)g)","LIR art. 2(3)","Convention : article Bénéfices des entreprises"],
+   liens:[["Loi de l'impôt sur le revenu",L.lir]] },
+
+ { id:"bci", titre:"Vente de biens canadiens imposables (article 116)", regimes:["part","soc"], cat:"Non-résidents",
+   mots:"biens canadiens imposables article 116 certificat de conformité t2062 acheteur retenue 25 % 50 % immeuble actions non-résident québec 1097 budget 2026 30 % 15 %",
+   resume:"Le non-résident qui vend un bien canadien imposable doit obtenir un certificat ; sinon, l'acheteur retient une partie du prix.",
+   points:[
+     "Biens canadiens imposables : immeubles au Canada, biens d'une entreprise exploitée au Canada, certaines actions dont la valeur provient principalement d'immeubles canadiens (par. 248(1)).",
+     "Le vendeur avise l'ARC (T2062) et verse un acompte, en général 25 % du gain, pour obtenir le certificat de conformité.",
+     "Sans certificat, l'acheteur est responsable d'un montant de 25 % du prix (50 % pour certains biens) et doit le retenir.",
+     "Québec : obligations analogues pour les biens situés au Québec, avec un certificat et une retenue propres (LI art. 1097 et s.).",
+     "Proposé (budget fédéral du 5 novembre 2026) : pour les vendeurs qui sont des sociétés non résidentes, taux de retenue réduits de 50 % et 25 % à 30 % et 15 %, et acompte réduit de 25 % à 15 % du gain, pour les dispositions à partir du 1er janvier 2027."
+   ],
+   refs:["LIR art. 116","LIR art. 248(1) « bien canadien imposable »","LI art. 1097 et s."],
+   liens:[["Budget fédéral 2026 (résumé BNC)",L.bncBudget2026]] },
+
+ { id:"depart", titre:"Départ du Canada : impôt de départ", regimes:["part","soc"], cat:"Arrivée et départ",
+   mots:"impôt de départ émigration disposition réputée 128.1(4) juste valeur marchande garantie report t1161 t1243 t1244 québec 785.2",
+   resume:"La personne qui cesse de résider au Canada est réputée disposer de la plupart de ses biens à leur juste valeur marchande.",
+   points:[
+     "Disposition réputée de la plupart des biens au moment du départ ; exceptions : immeubles canadiens, biens d'une entreprise au Canada, régimes de retraite (REER, FERR, etc.), certains droits.",
+     "Le paiement de l'impôt de départ peut être reporté jusqu'à la vente réelle, sur garantie acceptable (T1244).",
+     "Formulaire T1161 : liste des biens si leur juste valeur marchande totale dépasse 25 000 $ (sauf exceptions).",
+     "Société qui émigre : impôt supplémentaire de 25 % sur l'excédent de la valeur sur le capital versé (art. 219.1), réduit par convention.",
+     "Québec : disposition réputée analogue (LI art. 785.2)."
+   ],
+   refs:["LIR art. 128.1(4)","LIR art. 220(4.5)","LIR art. 219.1","LIR art. 233.3","LI art. 785.2"],
+   liens:[["Loi de l'impôt sur le revenu",L.lir]] },
+
+ { id:"arrivee", titre:"Arrivée au Canada : immigration", regimes:["part","soc"], cat:"Arrivée et départ",
+   mots:"immigration arrivée nouveau résident acquisition réputée juste valeur marchande 128.1(1) prix de base fiducie d'immigrant t1135 première année québec 785.1",
+   resume:"Le nouveau résident est réputé acquérir ses biens à leur juste valeur marchande à son arrivée : seuls les gains accumulés après l'arrivée sont imposables.",
+   points:[
+     "Acquisition réputée de la plupart des biens à la juste valeur marchande au moment où la personne devient résidente (par. 128.1(1)).",
+     "Revenu mondial imposable seulement à compter de la date de résidence ; avant, seul le revenu de source canadienne l'est.",
+     "Conservez une preuve de la valeur des biens à l'arrivée (évaluations, relevés).",
+     "Déclaration T1135 : pas exigée pour l'année où la personne devient résidente.",
+     "Québec : règle analogue (LI art. 785.1)."
+   ],
+   refs:["LIR art. 128.1(1)","LIR art. 114","LIR art. 233.7","LI art. 785.1"],
+   liens:[["Loi de l'impôt sur le revenu",L.lir]] },
+
+ { id:"cie", titre:"Crédit pour impôt étranger", regimes:["part","soc"], cat:"Revenus étrangers",
+   mots:"crédit pour impôt étranger double imposition revenu ne provenant pas d'une entreprise revenu d'entreprise 15 % t2209 limite par pays québec 772.6 772.7",
+   resume:"Le résident canadien imposé à l'étranger obtient un crédit, limité à l'impôt canadien sur ce revenu, calculé par pays.",
+   points:[
+     "Crédit pour impôt sur le revenu ne provenant pas d'une entreprise (placements) et crédit pour impôt sur le revenu d'entreprise, calculés séparément et par pays (par. 126(1) et (2)).",
+     "Particulier : l'impôt étranger sur les revenus de biens au-delà de 15 % est déductible plutôt que créditable (par. 20(11)).",
+     "Limite : l'impôt canadien attribuable au revenu étranger ; l'excédent d'impôt sur le revenu d'entreprise se reporte (3 ans en arrière, 10 ans en avant).",
+     "Québec : crédit distinct pour l'impôt étranger non utilisé au fédéral (LI art. 772.6 et s.).",
+     "Formulaire T2209 (particuliers) ; annexe 21 (sociétés)."
+   ],
+   refs:["LIR art. 126(1)","LIR art. 126(2)","LIR art. 20(11)","LIR art. 20(12)","LI art. 772.6","LI art. 772.7"],
+   liens:[["Loi de l'impôt sur le revenu",L.lir],["Loi sur les impôts (LégisQuébec)",L.li]] },
+
+ { id:"t1135", titre:"T1135 : biens étrangers déterminés", regimes:["part","soc"], cat:"Déclarations",
+   mots:"t1135 bien étranger déterminé 100 000 coût indicateur pénalité 25 $ par jour 2 500 $ nouvelle cotisation prolongée méthode simplifiée 250 000 budget 2026 200 000 500 000",
+   resume:"Déclaration obligatoire si le coût total des biens étrangers déterminés dépasse 100 000 $ à un moment de l'année.",
+   points:[
+     "Biens visés : comptes bancaires étrangers, titres étrangers (même détenus au Canada), immeubles étrangers non utilisés personnellement, créances étrangères, etc. ; exclus : biens à usage personnel, biens d'une entreprise exploitée activement, actions de sociétés étrangères affiliées.",
+     "Méthode simplifiée si le coût total est inférieur à 250 000 $ pendant toute l'année ; méthode détaillée au-delà.",
+     "Pénalité pour production tardive : 25 $ par jour, jusqu'à 2 500 $, et pénalités plus lourdes en cas de faute lourde ; période de nouvelle cotisation prolongée de 3 ans.",
+     "Proposé (budget fédéral 2026) : seuil de production porté à 200 000 $ et seuil de la méthode simplifiée à 500 000 $, pour les années se terminant après 2026.",
+     "Québec : dispositions analogues dans la LI (art. 1079.8.15.8 et s.) ; vérifiez les obligations de production auprès de Revenu Québec."
+   ],
+   refs:["LIR art. 233.3","LIR art. 162(7)","LIR art. 162(10)","LIR art. 152(4)b.2)","LI art. 1079.8.15.8 et s."],
+   liens:[["Budget fédéral 2026 (résumé BNC)",L.bncBudget2026]] },
+
+ { id:"decl", titre:"Autres déclarations de renseignements étrangers", regimes:["part","soc"], cat:"Déclarations",
+   mots:"t106 t1134 t1141 t1142 déclaration de renseignements société étrangère affiliée fiducie non-résidente opérations avec lien de dépendance 1 000 000 pénalités",
+   resume:"T106 (opérations avec des non-résidents liés), T1134 (sociétés étrangères affiliées), T1141 et T1142 (fiducies non résidentes).",
+   points:[
+     "T106 : opérations avec des non-résidents ayant un lien de dépendance, si leur total dépasse 1 000 000 $ dans l'année (art. 233.1).",
+     "T1134 : sociétés étrangères affiliées, dans les 10 mois suivant la fin de l'année (art. 233.4).",
+     "T1141 : transferts ou prêts à une fiducie non-résidente ; T1142 : distributions reçues d'une fiducie non-résidente ou dettes envers elle (art. 233.2 et 233.6).",
+     "Pénalités : 25 $ par jour jusqu'à 2 500 $ par déclaration, et pénalités supplémentaires en cas de faute lourde (art. 162).",
+     "Le budget fédéral 2026 propose de hausser la majorité des pénalités administratives (années se terminant après 2027)."
+   ],
+   refs:["LIR art. 233.1","LIR art. 233.2","LIR art. 233.4","LIR art. 233.6","LIR art. 162(7) et (10)"],
+   liens:[["Loi de l'impôt sur le revenu",L.lir]] },
+
+ { id:"sea", titre:"Sociétés étrangères affiliées et REATB", regimes:["soc","part"], cat:"Sociétés",
+   mots:"société étrangère affiliée sea contrôlée seatc revenu étranger accumulé tiré de biens reatb fapi 1 % 10 % revenu passif entreprise de placement imposition courante québec 580 571",
+   resume:"Le revenu passif (REATB) d'une société étrangère affiliée contrôlée est imposé chaque année au Canada, au fur et à mesure.",
+   points:[
+     "Société étrangère affiliée : le contribuable détient au moins 1 % des actions, et au moins 10 % avec les personnes liées (par. 95(1)).",
+     "Société étrangère affiliée contrôlée (SEAC) : contrôlée par le contribuable ou un groupe restreint de résidents canadiens.",
+     "REATB : revenu de biens (placements, entreprise de placement) et certains revenus d'entreprise réputés ; inclus dans le revenu de l'actionnaire canadien, avec déduction pour l'impôt étranger (par. 91(1) et 91(4)).",
+     "Le revenu d'une entreprise exploitée activement par la SEA n'est pas imposé au Canada tant qu'il n'est pas rapatrié.",
+     "Québec : règles analogues (LI art. 571 et 580)."
+   ],
+   refs:["LIR art. 91(1)","LIR art. 91(4)","LIR art. 95(1)","LIR art. 95(2)","LI art. 571","LI art. 580"],
+   liens:[["Loi de l'impôt sur le revenu",L.lir]] },
+
+ { id:"surplus", titre:"Dividendes de sociétés étrangères affiliées : surplus", regimes:["soc"], cat:"Sociétés",
+   mots:"surplus exonéré surplus hybride surplus imposable déduction 113 dividende société étrangère affiliée pays désigné convention échange de renseignements",
+   resume:"Les dividendes d'une SEA reçus par une société canadienne sont déductibles selon le compte de surplus d'où ils proviennent.",
+   points:[
+     "Surplus exonéré : revenu d'entreprise exploitée activement gagné dans un pays avec convention ou accord d'échange de renseignements (pays désigné) ; dividende entièrement déductible.",
+     "Surplus hybride : moitié des gains en capital sur certaines actions ; déduction de la moitié, plus l'impôt étranger majoré.",
+     "Surplus imposable : autres revenus (dont le REATB) ; déduction selon l'impôt étranger sous-jacent majoré.",
+     "La déduction s'applique aux sociétés résidant au Canada (par. 113(1)) ; un particulier qui reçoit un dividende étranger est imposé sur le montant brut, avec crédit pour impôt étranger.",
+     "Québec : règle analogue (LI art. 746)."
+   ],
+   refs:["LIR art. 113(1)","Règlement de l'impôt sur le revenu, art. 5907","LI art. 746"],
+   liens:[["Loi de l'impôt sur le revenu",L.lir]] },
+
+ { id:"pdt", titre:"Prix de transfert", regimes:["soc"], cat:"Sociétés",
+   mots:"prix de transfert pleine concurrence article 247 documentation contemporaine pénalité 10 % principes de l'ocde délimitation conditions réelles budget 2025 c-15 t106",
+   resume:"Les opérations avec des non-résidents liés doivent respecter le principe de pleine concurrence ; l'article 247 a été modernisé pour les années commençant après le 4 novembre 2025.",
+   points:[
+     "Redressement si les conditions d'une opération entre personnes ayant un lien de dépendance diffèrent de celles de parties sans lien de dépendance (art. 247).",
+     "Réforme du budget 2025 (projet de loi C-15) : analyse fondée sur la délimitation de l'opération et ses conditions réelles, renvoi aux Principes de l'OCDE, pour les années et exercices commençant après le 4 novembre 2025.",
+     "Documentation contemporaine exigée à la date d'échéance de production ; elle doit être fournie à l'ARC sur demande.",
+     "Pénalité de 10 % des redressements nets si ceux-ci dépassent le moindre de 10 % des revenus bruts et d'un seuil fixe, sauf efforts raisonnables documentés.",
+     "Québec : règle analogue (LI art. 1082.4) ; le Québec s'harmonise avec les modifications fédérales (bulletin 2026-3)."
+   ],
+   refs:["LIR art. 247(2)","LIR art. 247(3)","LIR art. 247(4)","LIR art. 233.1","LI art. 1082.4"],
+   liens:[["Réforme des prix de transfert (EY)",L.eyPrix],["Bulletin 2026-3 (Finances Québec)",L.finQcBul20263]] },
+
+ { id:"interets", titre:"Capitalisation restreinte et limite des intérêts (EIFEL)", regimes:["soc"], cat:"Sociétés",
+   mots:"capitalisation restreinte ratio 1,5 1 dettes envers des non-résidents déterminés intérêts non déductibles dividende réputé eifel 30 % bénéfice fiscal rajusté entité exclue",
+   resume:"Deux limites cumulatives : le ratio dette-capitaux propres de 1,5:1 envers des non-résidents déterminés et la règle EIFEL qui limite les dépenses d'intérêts nettes à 30 % du bénéfice fiscal rajusté.",
+   points:[
+     "Capitalisation restreinte : intérêts non déductibles sur la partie des dettes envers des non-résidents déterminés (actionnaires importants) qui dépasse 1,5 fois les capitaux propres (par. 18(4)).",
+     "Les intérêts refusés sont réputés être des dividendes versés au non-résident et sont soumis à la retenue de la partie XIII (par. 214(16)).",
+     "EIFEL : dépenses nettes d'intérêts et de financement limitées à 30 % du bénéfice fiscal rajusté (de type BAIIA) (art. 18.2).",
+     "Exclusions EIFEL : notamment les SPCC avec leurs sociétés associées dont le capital imposable est inférieur à 50 M$, et les groupes dont les dépenses nettes d'intérêts sont d'au plus 1 M$.",
+     "Les montants refusés peuvent être reportés selon les règles prévues."
+   ],
+   refs:["LIR art. 18(4)","LIR art. 214(16)","LIR art. 18.2"],
+   liens:[["Loi de l'impôt sur le revenu",L.lir]] },
+
+ { id:"pilier2", titre:"Impôt minimum mondial (Pilier Deux)", regimes:["soc"], cat:"Sociétés",
+   mots:"pilier deux impôt minimum mondial limm 15 % 750 millions d'euros règle d'inclusion du revenu rir impôt complémentaire minimum national icmn rpii profits insuffisamment imposés g7 système juxtaposé taxe sur les services numériques",
+   resume:"Les groupes multinationaux dont le chiffre d'affaires consolidé atteint 750 M€ paient un impôt complémentaire pour atteindre un taux effectif de 15 % par pays.",
+   points:[
+     "Loi sur l'impôt minimum mondial (LIMM) : règle d'inclusion du revenu (RIR) et impôt complémentaire minimum national, pour les exercices commençant à partir du 31 décembre 2023 ; règle relative aux profits insuffisamment imposés (RPII) à compter des exercices commençant à partir du 31 décembre 2024.",
+     "Seuil : chiffre d'affaires consolidé d'au moins 750 M€ dans au moins deux des quatre exercices précédents.",
+     "28 juin 2025 : le G7 annonce un « système juxtaposé » qui exempterait de la RIR et de la RPII les groupes ayant une société mère américaine ; des propositions législatives canadiennes ont été publiées le 15 août 2025.",
+     "29 juin 2025 : le Canada annonce l'annulation de la taxe sur les services numériques (3 %), avec abrogation rétroactive et remboursement des paiements.",
+     "Suivez les mises à jour : les règles de mise en œuvre du système juxtaposé évoluent."
+   ],
+   refs:["Loi sur l'impôt minimum mondial (L.C. 2024, ch. 17, art. 81)","Loi sur la taxe sur les services numériques (abrogation)"],
+   liens:[["Propositions LIMM d'août 2025 (EY)",L.eyPilier2],["Annulation de la TSN (Finances Canada)",L.tsn]] },
+
+ { id:"succursale", titre:"Succursale d'une société non résidente et établissement stable", regimes:["soc"], cat:"Sociétés",
+   mots:"succursale impôt de succursale 25 % article 219 établissement stable bénéfices des entreprises exploitation d'une entreprise au canada t2 non-résident exemption convention 500 000 états-unis",
+   resume:"Une société non résidente qui exploite une entreprise au Canada par un établissement stable y est imposée, plus un impôt de succursale de 25 % réduit par convention.",
+   points:[
+     "Un non-résident est imposé sur le revenu d'une entreprise exploitée au Canada (par. 2(3) et art. 115) ; une convention limite cette imposition aux bénéfices attribuables à un établissement stable.",
+     "Impôt de succursale de 25 % sur les bénéfices après impôt non réinvestis au Canada (art. 219), réduit au taux des dividendes de la convention (souvent 5 %).",
+     "Plusieurs conventions, dont celle avec les États-Unis, exonèrent une première tranche de bénéfices de la succursale.",
+     "La société non résidente qui exploite une entreprise au Canada produit une déclaration T2, même si une convention l'exonère.",
+     "Québec : l'établissement au Québec entraîne l'impôt québécois des sociétés sur le revenu attribuable au Québec."
+   ],
+   refs:["LIR art. 2(3)","LIR art. 115","LIR art. 219","LIR art. 150(1)a)","Convention : articles Établissement stable et Bénéfices des entreprises"],
+   liens:[["Loi de l'impôt sur le revenu",L.lir]] },
+
+ { id:"pensions", titre:"Pensions et prestations versées à des non-résidents", regimes:["part"], cat:"Non-résidents",
+   mots:"pension non-résident retenue 25 % rpc sv régime privé ferr reer retrait choix 217 convention 15 % 10 % rente",
+   resume:"Retenue de 25 % sur les pensions et retraits de régimes enregistrés versés à des non-résidents, réduite par convention pour les pensions périodiques.",
+   points:[
+     "Retenue de la partie XIII sur les pensions, les prestations du RPC et de la SV, les retraits de REER et de FERR (par. 212(1)).",
+     "Conventions : taux réduit pour les pensions périodiques, par exemple 15 % (États-Unis, Italie, Mexique) ou 10 % (Royaume-Uni) ; les retraits forfaitaires restent souvent à 25 %.",
+     "Choix de l'article 217 : le non-résident peut choisir d'être imposé sur ces revenus selon les taux réguliers et récupérer une partie de la retenue.",
+     "Prestations du RPC et de la SV : certaines conventions prévoient des règles propres ; vérifiez la convention.",
+     "Les prestations du RRQ versées à des non-résidents sont aussi soumises à la retenue fédérale."
+   ],
+   refs:["LIR art. 212(1)h)","LIR art. 212(1)l) et q)","LIR art. 217","Convention : article Pensions"],
+   liens:[["Guide T4061 – NR4 (ARC)",L.t4061]] }
+];
+
+/* Taux conventionnels : [taux bas, taux haut] ; null = voir convention */
+const PAYS = [
+  { code:"US", nom:"États-Unis", div:[5,15], divSeuil:"société détenant au moins 10 % des droits de vote", intNad:0, roy:[0,10], loyer:25, pens:15, note:"Avantages soumis à l'article sur la limitation des avantages (LOB)." },
+  { code:"FR", nom:"France", div:[5,15], divSeuil:"société détenant une participation importante (seuil : voir l'article Dividendes)", intNad:10, roy:[0,10], loyer:25, pens:25, note:"" },
+  { code:"UK", nom:"Royaume-Uni", div:[5,15], divSeuil:"société contrôlant au moins 10 % des droits de vote", intNad:10, roy:[0,10], loyer:25, pens:10, note:"Pensions : 10 % pour les pensions périodiques selon le tableau consulté ; vérifiez la nature de la pension." },
+  { code:"DE", nom:"Allemagne", div:[5,15], divSeuil:"société détenant une participation importante (seuil : voir l'article Dividendes)", intNad:10, roy:[0,10], loyer:25, pens:25, note:"Convention en renégociation." },
+  { code:"IT", nom:"Italie", div:[5,15], divSeuil:"société détenant une participation importante (seuil : voir l'article Dividendes)", intNad:10, roy:[0,10], loyer:25, pens:15, note:"Redevances : 0 %, 5 % ou 10 % selon la catégorie ; le calcul utilise 0 % ou 10 %, vérifiez si le taux de 5 % s'applique." },
+  { code:"MX", nom:"Mexique", div:[5,15], divSeuil:"société détenant une participation importante (seuil : voir l'article Dividendes)", intNad:10, roy:[0,10], loyer:25, pens:15, note:"" },
+  { code:"CN", nom:"Chine", div:[10,15], divSeuil:"société détenant une participation importante (seuil : voir l'article Dividendes)", intNad:10, roy:[10,10], loyer:25, pens:25, note:"Ne s'applique pas à Hong Kong. Convention en renégociation." },
+  { code:"IN", nom:"Inde", div:[15,25], divSeuil:"société détenant une participation importante (seuil : voir l'article Dividendes)", intNad:15, roy:[20,20], loyer:25, pens:null, note:"Redevances : 10 %, 15 % ou 20 % selon la nature ; le calcul retient 20 %, le taux le plus élevé. Pensions : voir la convention." },
+  { code:"JP", nom:"Japon", div:[5,15], divSeuil:"société détenant une participation importante (seuil : voir l'article Dividendes)", intNad:10, roy:[10,10], loyer:25, pens:25, note:"" },
+  { code:"MA", nom:"Maroc", div:[15,15], divSeuil:"", intNad:15, roy:[5,10], loyer:25, pens:null, note:"Redevances : 5 % pour les droits d'auteur, 10 % dans les autres cas. Pensions : voir la convention." },
+  { code:"XX", nom:"Pays sans convention", div:[25,25], divSeuil:"", intNad:25, roy:[25,25], loyer:25, pens:25, note:"Taux de la loi : 25 %." }
+];
+
+const NOUVEAUTES = [
+  { date:"28 juin 2025", regime:"soc", titre:"G7 : « système juxtaposé » pour le Pilier Deux", texte:"Les groupes ayant une société mère américaine seraient exemptés de la RIR et de la RPII. Le Canada a publié des propositions de modification de la LIMM le 15 août 2025.", lien:["Propositions d'août 2025 (EY)",L.eyPilier2] },
+  { date:"29 juin 2025", regime:"soc", titre:"Annulation de la taxe sur les services numériques", texte:"Le Canada annule la TSN de 3 % la veille du premier paiement ; abrogation rétroactive prévue et remboursement des paiements avec intérêts.", lien:["Communiqué (Finances Canada)",L.tsn] },
+  { date:"4 novembre 2025", regime:"soc", titre:"Modernisation des règles sur les prix de transfert", texte:"Nouvelle règle de redressement de l'article 247 fondée sur la délimitation et les conditions réelles, avec renvoi aux Principes de l'OCDE, pour les années commençant après le 4 novembre 2025 (projet de loi C-15). Le Québec s'harmonise (bulletin 2026-3).", lien:["Analyse (EY)",L.eyPrix] },
+  { date:"5 novembre 2026", regime:"part", titre:"Budget fédéral 2026 : mesures internationales proposées", texte:"Seuil du T1135 porté à 200 000 $ (méthode simplifiée : 500 000 $) ; retenues de l'article 116 réduites à 30 % et 15 % pour les sociétés non résidentes à partir de 2027 ; exonération de retenue pour certains roulements de l'article 85 ; roulement refusé pour certaines distributions de fiducies à des sociétés détenues par des non-résidents.", lien:["Résumé du budget (BNC)",L.bncBudget2026] }
+];
+
+const SOURCES = [
+  ["Loi de l'impôt sur le revenu (L.R.C. 1985, ch. 1, 5e suppl.)", L.lir, "Texte officiel, Justice Canada."],
+  ["Loi sur les impôts (RLRQ, c. I-3)", L.li, "Texte officiel, LégisQuébec."],
+  ["Circulaire IC76-12 : taux de la partie XIII (ARC)", L.ic7612, "Taux de retenue applicables aux résidents de pays ayant une convention."],
+  ["Guide T4061 : retenue d'impôt des non-résidents (ARC)", L.t4061, "Obligations du payeur, versements et feuillets NR4."],
+  ["Convention Canada–Maroc (Finances Canada)", L.convMaroc, "Exemple de texte de convention ; les autres conventions sont publiées au même endroit."],
+  ["Tableau des retenues du Canada (PwC)", L.pwcWht, "Taux de retenue par pays, révisé le 12 juin 2026."],
+  ["Nouvelles fiscales de Revenu Québec", L.rqNouvelles, "Annonces et précisions administratives."],
+  ["CanLII", L.canlii, "Jurisprudence (résidence, conventions, prix de transfert)."],
+  ["Cour canadienne de l'impôt", L.cci, "Appels en matière d'impôt fédéral."]
+];
+
+/* ================= UTILITAIRES ================= */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const norm = s => String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+const money = n => n.toLocaleString("fr-CA", { style:"currency", currency:"CAD" });
+const pct = (n, d) => (n * 100).toLocaleString("fr-CA", { minimumFractionDigits: d ?? 2, maximumFractionDigits: d ?? 2 }) + " %";
+const round2 = n => Math.round((n + Number.EPSILON) * 100) / 100;
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+};
+
+/* ================= NAVIGATION ================= */
+const VIEWS = ["recherche","assistant","calculateur","taux","nouveautes","sources"];
+function route() {
+  const h = location.hash.replace("#", "");
+  const v = VIEWS.includes(h) ? h : "recherche";
+  VIEWS.forEach(n => { $("#v-" + n).hidden = n !== v; });
+  document.querySelectorAll("nav a").forEach(a => {
+    if (a.dataset.view === v) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+  });
+}
+window.addEventListener("hashchange", route);
+
+/* ================= RECHERCHE ================= */
+const CATS = [...new Set(FICHES.map(f => f.cat))];
+let activeCat = "";
+FICHES.forEach(f => { f._h = norm([f.titre, f.mots, f.resume, f.cat, ...f.points, ...f.refs].join(" ")); });
+function terms(q) { return norm(q).split(/[\s,;]+/).filter(t => t.length > 1 && !["la","le","les","de","des","du","et","en","un","une","au","aux","sur","pour","art","article"].includes(t)); }
+function score(f, ts) {
+  if (!ts.length) return 1;
+  let s = 0;
+  for (const t of ts) {
+    if (!f._h.includes(t)) return 0;
+    if (norm(f.titre).includes(t)) s += 5;
+    if (norm(f.mots).includes(t)) s += 3;
+    s += 1;
+  }
+  return s;
+}
+function highlight(text, ts) {
+  const src = norm(text); let ranges = [];
+  ts.filter(t => t.length >= 3).forEach(t => {
+    let i = 0, idx;
+    while ((idx = src.indexOf(t, i)) !== -1) { ranges.push([idx, idx + t.length]); i = idx + t.length; }
+  });
+  if (!ranges.length) return esc(text);
+  ranges.sort((a, b) => a[0] - b[0]);
+  const merged = [];
+  ranges.forEach(r => { const m = merged[merged.length - 1]; if (m && r[0] <= m[1]) m[1] = Math.max(m[1], r[1]); else merged.push(r.slice()); });
+  let res = "", last = 0;
+  merged.forEach(([a, b]) => { res += esc(text.slice(last, a)) + "<mark>" + esc(text.slice(a, b)) + "</mark>"; last = b; });
+  return res + esc(text.slice(last));
+}
+function search(q, regime, cat) {
+  const ts = terms(q);
+  return FICHES.map(f => ({ f, s: score(f, ts) }))
+    .filter(x => x.s > 0 && (!regime || x.f.regimes.includes(regime)) && (!cat || x.f.cat === cat))
+    .sort((a, b) => b.s - a.s).map(x => x.f);
+}
+function renderChips() {
+  const all = [["", "Tous les thèmes"], ...CATS.map(c => [c, c])];
+  $("#chips").innerHTML = all.map(([v, l]) => `<button type="button" class="chip" data-cat="${esc(v)}" aria-pressed="${v === activeCat}">${esc(l)}</button>`).join("");
+}
+function renderCards() {
+  const q = $("#q").value, regime = $("#regime").value;
+  const res = search(q, regime, activeCat);
+  const ts = terms(q);
+  $("#count").textContent = res.length + (res.length > 1 ? " fiches" : " fiche") + (q ? " pour « " + q + " »" : "");
+  if (!res.length) {
+    $("#cards").innerHTML = `<div class="empty">Aucune fiche ne correspond. Essayez un autre mot-clé, ou posez la question à l'<a href="#assistant" id="to-ai">assistant</a>.</div>`;
+    const a = $("#to-ai"); if (a) a.addEventListener("click", () => { $("#ask-q").value = q; });
+    return;
+  }
+  $("#cards").innerHTML = res.map(f => `
+    <details class="card" id="fiche-${f.id}" ${ts.length && res.length <= 3 ? "open" : ""}>
+      <summary>
+        <div class="card-head">
+          <span class="card-title">${highlight(f.titre, ts)}</span>
+          ${f.regimes.includes("part") ? '<span class="tag part">Particuliers</span>' : ""}
+          ${f.regimes.includes("soc") ? '<span class="tag soc">Sociétés</span>' : ""}
+          <span class="tag cat">${esc(f.cat)}</span>
+        </div>
+        <div class="card-sum">${highlight(f.resume, ts)}</div>
+      </summary>
+      <div class="card-body">
+        <ul>${f.points.map(p => `<li>${highlight(p, ts)}</li>`).join("")}</ul>
+        <div class="refs">${f.refs.map(r => `<span class="ref">${esc(r)}</span>`).join("")}</div>
+        <div class="links">${f.liens.map(([t, u]) => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(t)} ↗</a>`).join("")}</div>
+        <div class="card-actions"><button type="button" class="btn ghost" data-ask="${f.id}">Poser une question sur ce sujet</button></div>
+      </div>
+    </details>`).join("");
+}
+$("#q").addEventListener("input", () => { renderCards(); store.set("q-intl", $("#q").value); });
+$("#regime").addEventListener("change", renderCards);
+$("#chips").addEventListener("click", e => { const b = e.target.closest(".chip"); if (!b) return; activeCat = b.dataset.cat; renderChips(); renderCards(); });
+$("#cards").addEventListener("click", e => {
+  const b = e.target.closest("[data-ask]"); if (!b) return;
+  const f = FICHES.find(x => x.id === b.dataset.ask);
+  $("#ask-q").value = "Concernant « " + f.titre + " » : ";
+  location.hash = "assistant";
+  setTimeout(() => { const t = $("#ask-q"); t.focus(); t.setSelectionRange(t.value.length, t.value.length); }, 50);
+});
+
+/* ================= ASSISTANT ================= */
+const EXEMPLES = [
+  "Une SPCC du Québec verse un dividende à sa société mère française qui détient 30 % des actions. Quel taux de retenue appliquer ?",
+  "Je quitte le Canada pour la France avec un portefeuille de 400 000 $. Quelles sont les conséquences de l'impôt de départ ?",
+  "Un consultant américain sans établissement au Canada rend des services à Montréal. Quelles retenues s'appliquent ?",
+  "Ma société canadienne détient 100 % d'une filiale en Irlande qui a des revenus de placement. Comment sont-ils imposés ?"
+];
+$("#examples").innerHTML = EXEMPLES.map((e, i) => `<button type="button" class="chip" data-ex="${i}">${esc(e.length > 60 ? e.slice(0, 58) + "…" : e)}</button>`).join("");
+$("#examples").addEventListener("click", e => { const b = e.target.closest("[data-ex]"); if (b) $("#ask-q").value = EXEMPLES[+b.dataset.ex]; });
+let sampleFn = null, controller = null;
+function mdToHtml(md) {
+  const lines = esc(md).split("\n"); let html = "", list = null;
+  const inline = s => s.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  const close = () => { if (list) { html += `</${list}>`; list = null; } };
+  for (const raw of lines) {
+    const l = raw.trimEnd(); let m;
+    if (/^#{1,4}\s/.test(l)) { close(); html += `<h3>${inline(l.replace(/^#{1,4}\s/, ""))}</h3>`; }
+    else if ((m = l.match(/^\s*[-*•]\s+(.*)/))) { if (list !== "ul") { close(); html += "<ul>"; list = "ul"; } html += `<li>${inline(m[1])}</li>`; }
+    else if ((m = l.match(/^\s*\d+[.)]\s+(.*)/))) { if (list !== "ol") { close(); html += "<ol>"; list = "ol"; } html += `<li>${inline(m[1])}</li>`; }
+    else if (!l.trim()) { close(); }
+    else { close(); html += `<p>${inline(l)}</p>`; }
+  }
+  close(); return html;
+}
+function ficheText(f) {
+  return `### ${f.titre}\n${f.resume}\n${f.points.map(p => "- " + p).join("\n")}\nRéférences : ${f.refs.join(" ; ")}\nLiens : ${f.liens.map(l => l[0] + " " + l[1]).join(" ; ")}`;
+}
+function buildPrompt(q, ctx) {
+  return `Tu es un assistant de recherche en fiscalité internationale du Canada : Loi de l'impôt sur le revenu (LIR), Loi sur les impôts du Québec (LI), conventions fiscales du Canada et règles connexes (partie XIII, résidence, sociétés étrangères affiliées, prix de transfert, Pilier Deux), pour les particuliers et les sociétés. L'utilisateur est un professionnel qui fait sa propre recherche. Date du jour : ${DERNIERE_MISE_A_JOUR}.
+
+Règles :
+- Réponds en français, de façon précise et technique.
+- Limite-toi à la fiscalité internationale en impôt sur le revenu. Si la question porte sur les taxes de vente ou un sujet purement domestique, dis-le brièvement.
+- Distingue toujours la règle de la loi canadienne et celle de la convention applicable ; indique l'article de la convention par son titre (ex. « article Dividendes ») si tu n'es pas certain du numéro.
+- Appuie-toi d'abord sur les fiches de référence ci-dessous. Si tu ajoutes des éléments hors fiches, signale qu'ils sont à vérifier.
+- Cite les articles de loi seulement si tu es raisonnablement certain du numéro ; sinon, écris « article à confirmer ».
+- Traite séparément le fédéral et le Québec lorsque les règles diffèrent.
+- Distingue les mesures en vigueur des mesures seulement proposées.
+- Si des faits manquent, nomme-les et donne la réponse pour chaque hypothèse plausible. Montre les calculs quand il y en a.
+- N'invente jamais d'URL : utilise seulement les liens présents dans les fiches.
+
+Format (Markdown, titres de niveau 3) :
+### Réponse courte
+### Analyse
+### Références législatives
+### Sources à consulter
+### Points à vérifier
+
+FICHES DE RÉFÉRENCE :
+${ctx.length ? ctx.map(ficheText).join("\n\n") : "(aucune fiche pertinente trouvée)"}
+
+QUESTION :
+${q}`;
+}
+function renderHistory() {
+  const h = store.get("hist-intl", []);
+  $("#history").innerHTML = h.length ? `<h3>Questions récentes</h3>` + h.map((x, i) => `<button type="button" data-h="${i}">${esc(x.q.length > 110 ? x.q.slice(0, 108) + "…" : x.q)}</button>`).join("") : "";
+}
+$("#history").addEventListener("click", e => {
+  const b = e.target.closest("[data-h]"); if (!b) return;
+  const x = store.get("hist-intl", [])[+b.dataset.h]; if (!x) return;
+  $("#ask-q").value = x.q; $("#answer").innerHTML = `<div class="answer">${mdToHtml(x.a)}</div>`;
+});
+async function ask() {
+  const q = $("#ask-q").value.trim();
+  if (!q) { $("#ask-status").textContent = "Écrivez d'abord une question."; return; }
+  if (!sampleFn) return;
+  const ctx = search(q, "", "").slice(0, 4);
+  controller = new AbortController();
+  $("#ask-btn").disabled = true; $("#ask-stop").hidden = false;
+  $("#ask-status").textContent = "Recherche en cours…";
+  $("#answer").innerHTML = `<div class="answer"><p class="note">Analyse de la question…</p></div>`;
+  const box = $("#answer .answer");
+  try {
+    const res = await sampleFn(buildPrompt(q, ctx), { modelTier: "complex", signal: controller.signal, cache: false, onText: ({ text }) => { box.innerHTML = mdToHtml(text); } });
+    box.innerHTML = mdToHtml(res.text) + (ctx.length ? `<p class="ctx">Fiches utilisées : ${ctx.map(f => `<a href="#recherche" data-goto="${f.id}">${esc(f.titre)}</a>`).join(", ")}</p>` : "");
+    const h = store.get("hist-intl", []); h.unshift({ q, a: res.text }); store.set("hist-intl", h.slice(0, 8)); renderHistory();
+    $("#ask-status").textContent = res.truncated ? "Réponse tronquée : précisez la question pour une réponse plus courte." : "";
+  } catch (err) {
+    if (err && err.code === "not_granted") $("#ask-status").textContent = "L'accès à Claude n'a pas été autorisé pour cette page.";
+    else if (err && err.code === "rate_limited") $("#ask-status").textContent = "Trop de demandes. Réessayez dans un moment.";
+    else if (err && err.name === "AbortError") { $("#ask-status").textContent = "Recherche arrêtée."; if (err.text) box.innerHTML = mdToHtml(err.text); }
+    else { $("#ask-status").textContent = "La recherche a échoué. Réessayez."; if (err && err.text) box.innerHTML = mdToHtml(err.text); }
+  } finally { $("#ask-btn").disabled = false; $("#ask-stop").hidden = true; controller = null; }
+}
+$("#ask-btn").addEventListener("click", ask);
+$("#ask-stop").addEventListener("click", () => { if (controller) controller.abort(); });
+$("#answer").addEventListener("click", e => {
+  const a = e.target.closest("[data-goto]"); if (!a) return;
+  e.preventDefault(); $("#q").value = ""; activeCat = ""; renderChips(); renderCards(); location.hash = "recherche";
+  setTimeout(() => { const d = $("#fiche-" + a.dataset.goto); if (d) { d.open = true; d.scrollIntoView({ block: "start" }); } }, 50);
+});
+(async () => {
+  $("#ask-btn").disabled = true;
+  try { if (window.claude && typeof window.claude.use === "function") sampleFn = await window.claude.use("sample"); } catch (e) { sampleFn = null; }
+  if (sampleFn) $("#ask-btn").disabled = false;
+  else $("#ai-notice").innerHTML = 'L\'assistant fonctionne seulement dans la version claude.ai (connexion à votre compte Claude requise)' + (URL_CLAUDE ? ' : <a href="' + URL_CLAUDE + '" target="_blank" rel="noopener">ouvrir la version avec assistant ↗</a>' : '') + '. Ici, utilisez l\'onglet Recherche, le calculateur et les sources officielles.';
+})();
+
+
+/* ================= CALCULATEUR ================= */
+$("#c-pays").innerHTML = PAYS.map(p => `<option value="${p.code}">${esc(p.nom)}</option>`).join("");
+const TYPES = { div:"Dividendes", int_nad:"Intérêts avec lien de dépendance", int_ad:"Intérêts sans lien de dépendance", roy:"Redevances", loyer:"Loyers d'un immeuble au Canada", pens:"Pension périodique" };
+function renderCalc() {
+  const m = Math.max(0, parseFloat($("#c-montant").value) || 0);
+  const p = PAYS.find(x => x.code === $("#c-pays").value);
+  const t = $("#c-type").value;
+  $("#w-subst").hidden = t !== "div";
+  $("#w-roy").hidden = t !== "roy";
+  let rate, note = [], forme = "NR301 (ou NR302/NR303 selon l'entité)";
+  if (t === "div") {
+    const s = $("#c-subst").checked;
+    rate = s ? p.div[0] : p.div[1];
+    if (p.div[0] !== p.div[1]) note.push(s ? `Taux réduit de ${p.div[0]} % : ${p.divSeuil}.` : `Un taux de ${p.div[0]} % peut s'appliquer à une ${p.divSeuil}.`);
+  } else if (t === "int_nad") { rate = p.intNad; if (p.code === "US") note.push("Convention Canada–États-Unis : intérêts exonérés, sauf intérêts éventuels (participatifs)."); }
+  else if (t === "int_ad") { rate = 0; note.push("Aucune retenue sur les intérêts versés à un non-résident sans lien de dépendance, sauf les intérêts sur créance participative (al. 212(1)b))."); forme = "Aucun (pas de retenue)"; }
+  else if (t === "roy") { rate = $("#c-roy").value === "cult" ? p.roy[0] : p.roy[1]; if (p.roy[0] === 0) note.push("Le taux de 0 % vise, selon la convention, les droits d'auteur culturels (sauf films et télévision), les logiciels, les brevets et le savoir-faire."); }
+  else if (t === "loyer") { rate = 25; note.push("Les conventions ne réduisent pas cette retenue. Choix de l'article 216 (imposition sur le revenu net) et formulaire NR6 possibles."); forme = "NR6 (facultatif)"; }
+  else if (t === "pens") { rate = p.pens; note.push("Pensions périodiques d'un régime privé. Retraits forfaitaires (REER, FERR, etc.) : souvent 25 %. Choix de l'article 217 possible."); }
+  if (p.note) note.push(p.note);
+  note.push("La partie XIII est un impôt fédéral ; le Québec n'impose pas de retenue sur ces revenus.");
+  const known = rate !== null && rate !== undefined;
+  const ret = known ? round2(m * rate / 100) : null;
+  $("#c-kpis").innerHTML = `
+    <div class="kpi"><span>Taux applicable</span><strong>${known ? rate + " %" : "Voir convention"}</strong></div>
+    <div class="kpi"><span>Retenue</span><strong>${known ? money(ret) : "—"}</strong></div>
+    <div class="kpi"><span>Montant net versé</span><strong>${known ? money(round2(m - ret)) : "—"}</strong></div>`;
+  $("#c-out").innerHTML = `<tr><th>Élément</th><th>Valeur</th></tr>
+    <tr><td>Type de revenu</td><td>${TYPES[t]}</td></tr>
+    <tr><td>Taux de la loi (partie XIII)</td><td>${t === "int_ad" ? "0 % (exonération de la loi)" : "25 %"}</td></tr>
+    <tr><td>Taux maximal selon la convention (${esc(p.nom)})</td><td>${known ? rate + " %" : "Voir la convention"}</td></tr>
+    <tr><td>Formulaire du bénéficiaire</td><td>${forme}</td></tr>
+    <tr><td>Versement à l'ARC</td><td>Le 15 du mois suivant le paiement ; feuillet NR4 au plus tard le 31 mars</td></tr>`;
+  $("#c-note").innerHTML = note.map(esc).join("<br>");
+}
+["#c-montant","#c-pays","#c-type","#c-subst","#c-roy"].forEach(s => $(s).addEventListener("input", renderCalc));
+
+/* ================= TAUX, NOUVEAUTÉS, SOURCES ================= */
+(() => {
+  const f = a => a[0] === a[1] ? a[0] + " %" : a[0] + "/" + a[1] + " %";
+  $("#t-conv").innerHTML = `<tr><th>Pays</th><th class="num">Dividendes</th><th class="num">Intérêts (lien de dépendance)</th><th class="num">Redevances</th><th class="num">Loyers (immeuble)</th><th class="num">Pensions périodiques</th></tr>` +
+    PAYS.map(p => `<tr><td>${esc(p.nom)}</td><td class="num">${f(p.div)}</td><td class="num">${p.intNad} %</td><td class="num">${p.code === "IT" ? "0/5/10 %" : p.code === "IN" ? "10/15/20 %" : f(p.roy)}</td><td class="num">${p.loyer} %</td><td class="num">${p.pens === null ? "Voir convention" : p.pens + " %"}</td></tr>`).join("") +
+    `<tr><td colspan="6" class="note">Intérêts sans lien de dépendance (non participatifs) : 0 % en vertu de la loi, quel que soit le pays.</td></tr>`;
+})();
+$("#timeline").innerHTML = NOUVEAUTES.map(n => `
+  <div class="tl"><time>${esc(n.date)}</time>
+    <div><div class="card-head"><strong>${esc(n.titre)}</strong>${n.regime === "soc" ? '<span class="tag soc">Sociétés</span>' : '<span class="tag part">Particuliers et sociétés</span>'}</div>
+    <p>${esc(n.texte)}</p><p><a href="${esc(n.lien[1])}" target="_blank" rel="noopener">${esc(n.lien[0])} ↗</a></p></div>
+  </div>`).join("");
+$("#srcgrid").innerHTML = SOURCES.map(([t, u, d]) => `<div class="src"><a href="${esc(u)}" target="_blank" rel="noopener">${esc(t)} ↗</a><span>${esc(d)}</span></div>`).join("");
+
+/* ================= VERSION EN LIGNE ================= */
+$("#stamp").textContent = "Contenu à jour au " + DERNIERE_MISE_A_JOUR;
+if (URL_EN_LIGNE && location.protocol === "file:" && location.hash !== "#local" && navigator.onLine) {
+  $("#redirect-banner").hidden = false;
+  const t = setTimeout(() => { location.replace(URL_EN_LIGNE); }, 1500);
+  $("#stay-local").addEventListener("click", () => { clearTimeout(t); $("#redirect-banner").hidden = true; });
+}
+
+/* ================= DÉMARRAGE ================= */
+$("#q").value = store.get("q-intl", "");
+renderChips(); renderCards(); renderHistory(); renderCalc(); route();
+</script>
+</body>
+</html>
